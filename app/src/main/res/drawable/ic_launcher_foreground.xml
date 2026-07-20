@@ -1,0 +1,50 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- wings (behind body) -->
+    <path
+        android:fillColor="#E1F5FE"
+        android:fillAlpha="0.95"
+        android:pathData="M24,44 a12,8 0 1,0 24,0 a12,8 0 1,0 -24,0 Z" />
+    <path
+        android:fillColor="#E1F5FE"
+        android:fillAlpha="0.95"
+        android:pathData="M60,44 a12,8 0 1,0 24,0 a12,8 0 1,0 -24,0 Z" />
+    <!-- antennae -->
+    <path
+        android:strokeColor="#4E342E"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M48,44 L40,30" />
+    <path
+        android:strokeColor="#4E342E"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:pathData="M60,44 L68,30" />
+    <path
+        android:fillColor="#4E342E"
+        android:pathData="M37,30 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0 Z" />
+    <path
+        android:fillColor="#4E342E"
+        android:pathData="M65,30 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0 Z" />
+    <!-- body -->
+    <path
+        android:fillColor="#FFD54F"
+        android:pathData="M35,57 a19,14 0 1,0 38,0 a19,14 0 1,0 -38,0 Z" />
+    <!-- stripes -->
+    <path
+        android:fillColor="#4E342E"
+        android:pathData="M46,45 h7 v24 h-7 Z" />
+    <path
+        android:fillColor="#4E342E"
+        android:pathData="M61,45 h7 v24 h-7 Z" />
+    <!-- eyes -->
+    <path
+        android:fillColor="#4E342E"
+        android:pathData="M45.5,50 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0 Z" />
+    <path
+        android:fillColor="#4E342E"
+        android:pathData="M57.5,50 a2.5,2.5 0 1,0 5,0 a2.5,2.5 0 1,0 -5,0 Z" />
+</vector>

@@ -1,0 +1,9 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme; background shows briefly before Compose takes over. -->
+    <style name="Theme.SpellMaster" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/honey_orange</item>
+        <item name="colorSecondary">@color/sky_blue</item>
+        <item name="android:windowBackground">@color/cream_bg</item>
+        <item name="android:statusBarColor">@color/honey_orange</item>
+    </style>
+</resources>

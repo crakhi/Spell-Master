@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bee_yellow">#FFD54F</color>
+    <color name="honey_orange">#FFA726</color>
+    <color name="sky_blue">#4FC3F7</color>
+    <color name="grass_green">#66BB6A</color>
+    <color name="petal_pink">#F06292</color>
+    <color name="berry_purple">#9575CD</color>
+    <color name="cream_bg">#FFF8E1</color>
+    <color name="ink_brown">#4E342E</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+</resources>
