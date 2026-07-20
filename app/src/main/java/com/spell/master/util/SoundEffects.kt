@@ -21,15 +21,17 @@ object SoundEffects {
     }
 
     // Correct answers get a soft, quiet confirmation -- the visuals (confetti, stars)
-    // already carry the celebration, so the sound shouldn't be the loud one.
+    // already carry the celebration, so the sound shouldn't be the loud one. Kept in the
+    // same frequency neighborhood as the wrong-buzz tone below so phone-speaker frequency
+    // response can't cancel out the amplitude difference -- only volume should differ.
     suspend fun playCorrectChime() = withContext(Dispatchers.Default) {
-        playBuffer(buildTone(660.0, 160, amplitude = 0.28) + buildTone(880.0, 200, amplitude = 0.22))
+        playBuffer(buildTone(900.0, 110, amplitude = 0.12))
     }
 
-    // Wrong answers get the more noticeable alert tone, so the kid actually notices
+    // Wrong answers get the loud, unmistakable alert tone, so the kid actually notices
     // and looks at the correction instead of missing it.
     suspend fun playWrongBuzz() = withContext(Dispatchers.Default) {
-        playBuffer(buildTone(520.0, 140, amplitude = 0.6) + buildTone(520.0, 140, amplitude = 0.6))
+        playBuffer(buildTone(900.0, 130, amplitude = 0.9) + buildTone(700.0, 160, amplitude = 0.9))
     }
 
     private fun buildTone(freqHz: Double, durationMs: Int, amplitude: Double = 0.5): ShortArray =
