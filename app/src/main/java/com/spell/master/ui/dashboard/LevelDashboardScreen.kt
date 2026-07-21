@@ -35,8 +35,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.spell.master.data.local.entity.LevelEntity
+import com.spell.master.di.LocalAuthRepository
 import com.spell.master.di.LocalRepository
+import com.spell.master.domain.LevelWithProgress
 import com.spell.master.ui.common.LottieAnim
 import com.spell.master.ui.common.StarRatingRow
 import com.spell.master.ui.theme.CreamBg
@@ -51,8 +52,11 @@ fun LevelDashboardScreen(
     onLevelSelected: (String) -> Unit
 ) {
     val repository = LocalRepository.current
+    // Guarded by nav (SIGN_IN is the start destination when signed out), so this is
+    // only ever null if auth state changes out from under an already-composed screen.
+    val userId = LocalAuthRepository.current.currentUserId ?: return
     val viewModel: LevelDashboardViewModel = viewModel(
-        factory = viewModelFactory { initializer { LevelDashboardViewModel(repository, gradeId) } }
+        factory = viewModelFactory { initializer { LevelDashboardViewModel(repository, userId, gradeId) } }
     )
     val levels by viewModel.levels.collectAsStateWithLifecycle()
 
@@ -88,7 +92,7 @@ fun LevelDashboardScreen(
 }
 
 @Composable
-private fun LevelTile(level: LevelEntity, onClick: () -> Unit) {
+private fun LevelTile(level: LevelWithProgress, onClick: () -> Unit) {
     val color = if (level.isUnlocked) TilePalette[level.orderIndex % TilePalette.size] else LockedGray
     val attempted = level.stars >= 0
 
@@ -144,7 +148,7 @@ private fun LevelTile(level: LevelEntity, onClick: () -> Unit) {
     }
 }
 
-/** Accuracy rating (how many were answered right) -- separate from the speed-based [LevelEntity.stars]. */
+/** Accuracy rating (how many were answered right) -- separate from the speed-based [LevelWithProgress.stars]. */
 private fun accuracyStarsFor(correctCount: Int, total: Int): Int {
     if (total <= 0) return 1
     val ratio = correctCount.toFloat() / total.toFloat()

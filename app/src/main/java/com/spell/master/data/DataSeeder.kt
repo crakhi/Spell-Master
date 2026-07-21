@@ -51,8 +51,7 @@ class DataSeeder(private val context: Context, private val db: AppDatabase) {
                 levelKey = levelJson.level,
                 name = levelJson.name,
                 orderIndex = levelIndex,
-                totalWords = levelJson.words.size,
-                isUnlocked = levelIndex == 0
+                totalWords = levelJson.words.size
             )
             levelJson.words.forEachIndexed { wordIndex, wordJson ->
                 wordEntities += WordEntity(

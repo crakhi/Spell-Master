@@ -28,6 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.spell.master.di.LocalAuthRepository
 import com.spell.master.di.LocalRepository
 import com.spell.master.ui.common.LottieAnim
 import com.spell.master.ui.common.StarRatingRow
@@ -48,8 +49,9 @@ fun LevelResultScreen(
     onNextLevel: (String) -> Unit
 ) {
     val repository = LocalRepository.current
+    val userId = LocalAuthRepository.current.currentUserId ?: return
     val viewModel: LevelResultViewModel = viewModel(
-        factory = viewModelFactory { initializer { LevelResultViewModel(repository, levelId) } }
+        factory = viewModelFactory { initializer { LevelResultViewModel(repository, userId, levelId) } }
     )
     val nextLevelId by viewModel.nextLevelId.collectAsStateWithLifecycle()
 

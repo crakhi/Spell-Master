@@ -9,7 +9,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class LevelResultViewModel(private val repository: SpellRepository, private val levelId: String) : ViewModel() {
+class LevelResultViewModel(
+    private val repository: SpellRepository,
+    private val userId: String,
+    private val levelId: String
+) : ViewModel() {
 
     private val _nextLevelId = MutableStateFlow<String?>(null)
     val nextLevelId: StateFlow<String?> = _nextLevelId.asStateFlow()
@@ -17,7 +21,7 @@ class LevelResultViewModel(private val repository: SpellRepository, private val 
     init {
         viewModelScope.launch {
             val level = repository.getLevel(levelId) ?: return@launch
-            val levels = repository.observeLevels(level.gradeId).first()
+            val levels = repository.observeLevelsWithProgress(userId, level.gradeId).first()
             val index = levels.indexOfFirst { it.levelId == levelId }
             _nextLevelId.value = levels.getOrNull(index + 1)?.levelId
         }

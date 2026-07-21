@@ -46,6 +46,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.spell.master.di.LocalAuthRepository
 import com.spell.master.di.LocalRepository
 import com.spell.master.domain.Question
 import com.spell.master.domain.QuestionType
@@ -68,8 +69,9 @@ fun QuestionScreen(
     onLevelFinished: (sessionId: String, stars: Int, correct: Int, total: Int) -> Unit
 ) {
     val repository = LocalRepository.current
+    val userId = LocalAuthRepository.current.currentUserId ?: return
     val viewModel: QuestionViewModel = viewModel(
-        factory = viewModelFactory { initializer { QuestionViewModel(repository, levelId) } }
+        factory = viewModelFactory { initializer { QuestionViewModel(repository, userId, levelId) } }
     )
     val state by viewModel.state.collectAsStateWithLifecycle()
 

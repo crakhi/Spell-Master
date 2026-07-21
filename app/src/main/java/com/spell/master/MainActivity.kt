@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.spell.master.di.LocalAuthRepository
 import com.spell.master.di.LocalRepository
 import com.spell.master.ui.navigation.SpellNavHost
 import com.spell.master.ui.theme.CreamBg
@@ -32,10 +33,15 @@ class MainActivity : ComponentActivity() {
             controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
 
-        val repository = (application as SpellMasterApp).container.repository
+        val container = (application as SpellMasterApp).container
+        val repository = container.repository
+        val authRepository = container.authRepository
 
         setContent {
-            CompositionLocalProvider(LocalRepository provides repository) {
+            CompositionLocalProvider(
+                LocalRepository provides repository,
+                LocalAuthRepository provides authRepository
+            ) {
                 SpellMasterTheme {
                     Surface(modifier = Modifier.fillMaxSize(), color = CreamBg) {
                         // Background fills edge-to-edge, but content stays clear of the

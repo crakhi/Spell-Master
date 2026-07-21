@@ -42,6 +42,7 @@ data class QuestionUiState(
 
 class QuestionViewModel(
     private val repository: SpellRepository,
+    private val userId: String,
     private val levelId: String
 ) : ViewModel() {
 
@@ -174,6 +175,7 @@ class QuestionViewModel(
 
     private suspend fun recordAttempt(question: Question, correct: Boolean) {
         repository.logAttempt(
+            userId = userId,
             sessionId = sessionId,
             gradeId = gradeId,
             levelId = levelId,
@@ -213,7 +215,7 @@ class QuestionViewModel(
     }
 
     private suspend fun startFinalTestOrFinish() {
-        val wrongIds = repository.getWrongWordIds(sessionId, levelId).shuffled().take(MAX_FINAL_TEST_QUESTIONS)
+        val wrongIds = repository.getWrongWordIds(userId, sessionId, levelId).shuffled().take(MAX_FINAL_TEST_QUESTIONS)
         if (wrongIds.isEmpty()) {
             finishLevel()
             return
@@ -224,10 +226,10 @@ class QuestionViewModel(
     }
 
     private suspend fun finishLevel() {
-        val correctMain = repository.countCorrectMain(sessionId, levelId)
+        val correctMain = repository.countCorrectMain(userId, sessionId, levelId)
         val total = mainQuestions.size
         val speedStars = if (perQuestionStars.isEmpty()) 1 else perQuestionStars.average().roundToInt().coerceIn(1, 5)
-        val stars = repository.finishLevel(levelId, gradeId, speedStars, correctMain)
+        val stars = repository.finishLevel(userId, levelId, gradeId, speedStars, correctMain)
         _state.update {
             it.copy(finished = true, finalStars = stars, finalCorrect = correctMain, finalTotal = total)
         }

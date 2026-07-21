@@ -1,6 +1,8 @@
 package com.spell.master.ui.navigation
 
 object Screen {
+    const val SIGN_IN = "sign_in"
+
     const val GRADE_SELECTION = "grade_selection"
 
     const val LEVEL_DASHBOARD = "level_dashboard/{gradeId}"

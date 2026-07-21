@@ -6,20 +6,41 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.spell.master.di.LocalAuthRepository
 import com.spell.master.ui.dashboard.LevelDashboardScreen
 import com.spell.master.ui.gradeselection.GradeSelectionScreen
 import com.spell.master.ui.question.QuestionScreen
 import com.spell.master.ui.result.LevelResultScreen
+import com.spell.master.ui.signin.SignInScreen
 
 @Composable
 fun SpellNavHost() {
     val navController = rememberNavController()
+    val authRepository = LocalAuthRepository.current
+    // Firebase caches the signed-in session locally, so this is available synchronously
+    // -- already-signed-in users skip straight past the sign-in gate.
+    val startDestination = if (authRepository.currentUserId != null) Screen.GRADE_SELECTION else Screen.SIGN_IN
 
-    NavHost(navController = navController, startDestination = Screen.GRADE_SELECTION) {
+    NavHost(navController = navController, startDestination = startDestination) {
+        composable(Screen.SIGN_IN) {
+            SignInScreen(
+                onSignedIn = {
+                    navController.navigate(Screen.GRADE_SELECTION) {
+                        popUpTo(Screen.SIGN_IN) { inclusive = true }
+                    }
+                }
+            )
+        }
+
         composable(Screen.GRADE_SELECTION) {
             GradeSelectionScreen(
                 onGradeSelected = { gradeId ->
                     navController.navigate(Screen.levelDashboard(gradeId))
+                },
+                onSignedOut = {
+                    navController.navigate(Screen.SIGN_IN) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }

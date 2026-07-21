@@ -2,6 +2,7 @@ package com.spell.master.ui.gradeselection
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.spell.master.data.auth.AuthRepository
 import com.spell.master.data.local.entity.GradeEntity
 import com.spell.master.data.repository.SpellRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -11,7 +12,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class GradeSelectionViewModel(private val repository: SpellRepository) : ViewModel() {
+class GradeSelectionViewModel(
+    private val repository: SpellRepository,
+    private val authRepository: AuthRepository
+) : ViewModel() {
 
     val grades: StateFlow<List<GradeEntity>> = repository.observeGrades()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -27,7 +31,13 @@ class GradeSelectionViewModel(private val repository: SpellRepository) : ViewMod
     val dataClearedEvents: SharedFlow<Unit> = _dataClearedEvents
 
     init {
-        viewModelScope.launch { repository.ensureSeeded() }
+        viewModelScope.launch {
+            repository.ensureSeeded()
+            // This screen is the universal post-sign-in landing spot (fresh login or
+            // app reopened while already signed in), so it's the right place to pull
+            // any progress made on other devices for this account.
+            authRepository.currentUserId?.let { repository.syncFromCloud(it) }
+        }
     }
 
     /** Hidden dev/QA gesture: tapping the bee mascot 10 times in a row wipes and reseeds the database. */

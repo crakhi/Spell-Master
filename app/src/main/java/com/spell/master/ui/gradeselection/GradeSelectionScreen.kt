@@ -35,6 +35,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.spell.master.data.local.entity.GradeEntity
+import com.spell.master.di.LocalAuthRepository
 import com.spell.master.di.LocalRepository
 import com.spell.master.ui.common.LottieAnim
 import com.spell.master.ui.theme.CreamBg
@@ -44,10 +45,11 @@ import com.spell.master.ui.theme.LockedGray
 import com.spell.master.ui.theme.TilePalette
 
 @Composable
-fun GradeSelectionScreen(onGradeSelected: (Int) -> Unit) {
+fun GradeSelectionScreen(onGradeSelected: (Int) -> Unit, onSignedOut: () -> Unit) {
     val repository = LocalRepository.current
+    val authRepository = LocalAuthRepository.current
     val viewModel: GradeSelectionViewModel = viewModel(
-        factory = viewModelFactory { initializer { GradeSelectionViewModel(repository) } }
+        factory = viewModelFactory { initializer { GradeSelectionViewModel(repository, authRepository) } }
     )
     val grades by viewModel.grades.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -71,10 +73,23 @@ fun GradeSelectionScreen(onGradeSelected: (Int) -> Unit) {
                     .size(72.dp)
                     .clickable(onClick = viewModel::onBeeTapped)
             )
-            Column(Modifier.padding(start = 12.dp)) {
+            Column(Modifier.padding(start = 12.dp).weight(1f)) {
                 Text("Spell Master", style = MaterialTheme.typography.headlineMedium, color = InkBrown)
                 Text("Pick your grade to start buzzing!", style = MaterialTheme.typography.bodyLarge, color = InkBrown)
             }
+            Text(
+                text = "Sign out",
+                color = InkBrown,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable {
+                        authRepository.signOut()
+                        onSignedOut()
+                    }
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+            )
         }
 
         LazyVerticalGrid(

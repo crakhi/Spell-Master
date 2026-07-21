@@ -17,15 +17,15 @@ interface WordAttemptDao {
      */
     @Query(
         "SELECT DISTINCT wordId FROM word_attempts " +
-            "WHERE sessionId = :sessionId AND levelId = :levelId " +
+            "WHERE userId = :userId AND sessionId = :sessionId AND levelId = :levelId " +
             "AND isFinalTest = 0 AND isCorrect = 0"
     )
-    suspend fun getWrongWordIds(sessionId: String, levelId: String): List<Int>
+    suspend fun getWrongWordIds(userId: String, sessionId: String, levelId: String): List<Int>
 
     @Query(
         "SELECT COUNT(*) FROM word_attempts " +
-            "WHERE sessionId = :sessionId AND levelId = :levelId " +
+            "WHERE userId = :userId AND sessionId = :sessionId AND levelId = :levelId " +
             "AND isFinalTest = 0 AND isCorrect = 1"
     )
-    suspend fun countCorrectMain(sessionId: String, levelId: String): Int
+    suspend fun countCorrectMain(userId: String, sessionId: String, levelId: String): Int
 }

@@ -11,6 +11,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "word_attempts")
 data class WordAttemptEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val userId: String,
     val sessionId: String,
     val gradeId: Int,
     val levelId: String,

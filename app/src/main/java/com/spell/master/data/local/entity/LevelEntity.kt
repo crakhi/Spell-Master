@@ -4,8 +4,10 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 /**
- * One entry per level (e.g. "g3_level1"). [stars] is -1 until the kid finishes
- * the level for the first time; after that it holds the best rating earned so far.
+ * Catalog row for one level (e.g. "g3_level1") -- the curriculum content itself,
+ * identical for every user. Per-user progress (unlocked/stars/best score) lives
+ * separately in [LevelProgressEntity] so multiple signed-in users can share this
+ * same catalog without overwriting each other's progress.
  */
 @Entity(tableName = "levels")
 data class LevelEntity(
@@ -14,8 +16,5 @@ data class LevelEntity(
     val levelKey: String,
     val name: String,
     val orderIndex: Int,
-    val totalWords: Int,
-    val isUnlocked: Boolean,
-    val stars: Int = -1,
-    val bestCorrectCount: Int = 0
+    val totalWords: Int
 )
