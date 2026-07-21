@@ -135,6 +135,7 @@ fun QuestionScreen(
                     question = question,
                     selectedAnswer = state.selectedAnswer,
                     answered = state.answered,
+                    isSpeaking = state.isSpeaking,
                     onSelect = viewModel::selectAnswer,
                     onNext = viewModel::nextQuestion,
                     modifier = Modifier.weight(1f).fillMaxHeight()
@@ -281,6 +282,7 @@ private fun OptionsPanel(
     question: Question,
     selectedAnswer: String?,
     answered: Boolean,
+    isSpeaking: Boolean,
     onSelect: (String) -> Unit,
     onNext: () -> Unit,
     modifier: Modifier = Modifier
@@ -300,17 +302,30 @@ private fun OptionsPanel(
             Spacer(modifier = Modifier.height(6.dp))
             Button(
                 onClick = onNext,
-                colors = ButtonDefaults.buttonColors(containerColor = SkyBlue),
+                enabled = !isSpeaking,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = SkyBlue,
+                    disabledContainerColor = SkyBlue.copy(alpha = 0.5f)
+                ),
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.fillMaxWidth().height(52.dp)
             ) {
-                Text("Next", fontWeight = FontWeight.ExtraBold, fontSize = 18.sp, color = Color.White)
-                Spacer(modifier = Modifier.width(10.dp))
-                LottieAnim(
-                    asset = "next_arrow.json",
-                    modifier = Modifier.size(36.dp),
-                    loop = true
+                Text(
+                    text = if (isSpeaking) "Listen..." else "Next",
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 18.sp,
+                    color = Color.White
                 )
+                Spacer(modifier = Modifier.width(10.dp))
+                if (isSpeaking) {
+                    Text("🔊", fontSize = 20.sp)
+                } else {
+                    LottieAnim(
+                        asset = "next_arrow.json",
+                        modifier = Modifier.size(36.dp),
+                        loop = true
+                    )
+                }
             }
         }
     }

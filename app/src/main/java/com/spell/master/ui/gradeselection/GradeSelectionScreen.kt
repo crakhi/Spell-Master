@@ -20,6 +20,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -43,6 +46,7 @@ import com.spell.master.ui.theme.HoneyOrange
 import com.spell.master.ui.theme.InkBrown
 import com.spell.master.ui.theme.LockedGray
 import com.spell.master.ui.theme.TilePalette
+import com.spell.master.util.SoundEffects
 
 @Composable
 fun GradeSelectionScreen(onGradeSelected: (Int) -> Unit, onSignedOut: () -> Unit) {
@@ -53,6 +57,7 @@ fun GradeSelectionScreen(onGradeSelected: (Int) -> Unit, onSignedOut: () -> Unit
     )
     val grades by viewModel.grades.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    var isMuted by remember { mutableStateOf(SoundEffects.isMuted()) }
 
     LaunchedEffect(viewModel) {
         viewModel.dataClearedEvents.collect {
@@ -77,6 +82,17 @@ fun GradeSelectionScreen(onGradeSelected: (Int) -> Unit, onSignedOut: () -> Unit
                 Text("Spell Master", style = MaterialTheme.typography.headlineMedium, color = InkBrown)
                 Text("Pick your grade to start buzzing!", style = MaterialTheme.typography.bodyLarge, color = InkBrown)
             }
+            Text(
+                text = if (isMuted) "🔇" else "🔊",
+                fontSize = 26.sp,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable {
+                        isMuted = !isMuted
+                        SoundEffects.setMuted(context, isMuted)
+                    }
+                    .padding(8.dp)
+            )
             Text(
                 text = "Sign out",
                 color = InkBrown,

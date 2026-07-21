@@ -7,6 +7,7 @@ import com.spell.master.domain.EncouragementBank
 import com.spell.master.domain.Question
 import com.spell.master.domain.QuestionFactory
 import com.spell.master.util.SoundEffects
+import com.spell.master.util.SpellingSpeaker
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +34,7 @@ data class QuestionUiState(
     val feedbackMessage: String? = null,
     val showHint: Boolean = false,
     val lastAnswerStars: Int = 0,
+    val isSpeaking: Boolean = false,
     val finished: Boolean = false,
     val finalStars: Int = 0,
     val finalCorrect: Int = 0,
@@ -89,7 +91,8 @@ class QuestionViewModel(
                 secondsLeft = TOTAL_SECONDS,
                 feedbackMessage = null,
                 showHint = false,
-                lastAnswerStars = 0
+                lastAnswerStars = 0,
+                isSpeaking = false
             )
         }
         startTimer()
@@ -103,6 +106,9 @@ class QuestionViewModel(
                     onTimeUp()
                     break
                 }
+                // Ticks every second so kids can hear the clock running, not just see
+                // it -- sharper in the last 10s to match the timer's visual urgency.
+                SoundEffects.playTick(urgent = t <= 10)
                 delay(1000)
             }
         }
@@ -125,12 +131,18 @@ class QuestionViewModel(
                 isCorrect = correct,
                 feedbackMessage = if (correct) EncouragementBank.randomPraise() else EncouragementBank.randomEncouragement(),
                 showHint = false,
-                lastAnswerStars = speedStars
+                lastAnswerStars = speedStars,
+                // Next stays disabled until the word has been fully spoken out.
+                isSpeaking = true
             )
         }
         pendingWrite = viewModelScope.launch {
             recordAttempt(question, correct)
             if (correct) SoundEffects.playCorrectChime() else SoundEffects.playWrongBuzz()
+            // Small gap so the confirmation chime/buzz finishes before the letters
+            // start -- otherwise they talk over each other.
+            delay(SPEAK_DELAY_AFTER_CHIME_MS)
+            SpellingSpeaker.speakWordAndSpelling(question.word) { onSpeakingDone() }
         }
     }
 
@@ -148,13 +160,22 @@ class QuestionViewModel(
                 selectedAnswer = null,
                 feedbackMessage = EncouragementBank.randomEncouragement(),
                 showHint = false,
-                lastAnswerStars = 0
+                lastAnswerStars = 0,
+                isSpeaking = true
             )
         }
         pendingWrite = viewModelScope.launch {
             recordAttempt(question, false)
             SoundEffects.playWhistle()
+            delay(SPEAK_DELAY_AFTER_WHISTLE_MS)
+            SpellingSpeaker.speakWordAndSpelling(question.word) { onSpeakingDone() }
         }
+    }
+
+    /** [SpellingSpeaker]'s callback fires on a TTS thread, not necessarily the main
+     * thread -- StateFlow.update is thread-safe, so that's fine here. */
+    private fun onSpeakingDone() {
+        _state.update { it.copy(isSpeaking = false) }
     }
 
     fun toggleHint() {
@@ -192,6 +213,10 @@ class QuestionViewModel(
         viewModelScope.launch {
             pendingWrite?.join()
             val current = _state.value
+            // Defensive guard -- the Next button is disabled while speaking, but the
+            // TTS completion callback lands on a background thread, so don't trust UI
+            // timing alone to prevent a race here.
+            if (current.isSpeaking) return@launch
             when (current.phase) {
                 QuizPhase.MAIN -> {
                     val nextIndex = current.currentIndex + 1
@@ -242,5 +267,7 @@ class QuestionViewModel(
     companion object {
         const val TOTAL_SECONDS = 30
         const val MAX_FINAL_TEST_QUESTIONS = 2
+        private const val SPEAK_DELAY_AFTER_CHIME_MS = 400L
+        private const val SPEAK_DELAY_AFTER_WHISTLE_MS = 950L
     }
 }

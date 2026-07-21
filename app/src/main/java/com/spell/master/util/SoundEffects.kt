@@ -1,5 +1,6 @@
 package com.spell.master.util
 
+import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
@@ -10,12 +11,33 @@ import kotlin.math.sin
 
 /**
  * Tiny synthesizer for the game's sound cues (whistle on timeout, chime on correct,
- * buzz on wrong) so the app doesn't need to ship or download any audio assets.
+ * buzz on wrong, tick while the timer runs) so the app doesn't need to ship or
+ * download any audio assets. [isMuted] is a single global switch (persisted in
+ * SharedPreferences) covering every sound in the app.
  */
 object SoundEffects {
     private const val SAMPLE_RATE = 44100
+    private const val PREFS_NAME = "spell_master_prefs"
+    private const val KEY_MUTED = "sound_muted"
+
+    @Volatile private var muted: Boolean = false
+
+    /** Call once at app startup so the persisted mute preference is loaded before anything plays. */
+    fun init(context: Context) {
+        muted = prefs(context).getBoolean(KEY_MUTED, false)
+    }
+
+    fun isMuted(): Boolean = muted
+
+    fun setMuted(context: Context, value: Boolean) {
+        muted = value
+        prefs(context).edit().putBoolean(KEY_MUTED, value).apply()
+    }
+
+    private fun prefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     suspend fun playWhistle() = withContext(Dispatchers.Default) {
+        if (muted) return@withContext
         playBuffer(buildSweep(startHz = 1000.0, endHz = 2400.0, durationMs = 500) +
             buildSweep(startHz = 2400.0, endHz = 1400.0, durationMs = 400))
     }
@@ -25,13 +47,24 @@ object SoundEffects {
     // same frequency neighborhood as the wrong-buzz tone below so phone-speaker frequency
     // response can't cancel out the amplitude difference -- only volume should differ.
     suspend fun playCorrectChime() = withContext(Dispatchers.Default) {
+        if (muted) return@withContext
         playBuffer(buildTone(900.0, 110, amplitude = 0.12))
     }
 
     // Wrong answers get the loud, unmistakable alert tone, so the kid actually notices
     // and looks at the correction instead of missing it.
     suspend fun playWrongBuzz() = withContext(Dispatchers.Default) {
+        if (muted) return@withContext
         playBuffer(buildTone(900.0, 130, amplitude = 0.9) + buildTone(700.0, 160, amplitude = 0.9))
+    }
+
+    /** Short clock-like tick, once per second while a question's timer is running.
+     * Sharper and a touch louder in the last 10 seconds to reinforce the visual urgency. */
+    suspend fun playTick(urgent: Boolean = false) = withContext(Dispatchers.Default) {
+        if (muted) return@withContext
+        val freq = if (urgent) 1500.0 else 1100.0
+        val amplitude = if (urgent) 0.4 else 0.28
+        playBuffer(buildTone(freq, 35, amplitude = amplitude))
     }
 
     private fun buildTone(freqHz: Double, durationMs: Int, amplitude: Double = 0.5): ShortArray =
