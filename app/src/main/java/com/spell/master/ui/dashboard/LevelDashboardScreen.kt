@@ -9,8 +9,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -105,18 +107,33 @@ private fun LevelTile(level: LevelEntity, onClick: () -> Unit) {
                 text = level.name,
                 color = Color.White,
                 fontWeight = FontWeight.ExtraBold,
-                fontSize = 19.sp,
+                fontSize = 17.sp,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
             if (!level.isUnlocked) {
                 Text("🔒 Locked", color = Color.White, fontSize = 13.sp)
             } else if (attempted) {
-                StarRatingRow(
-                    rating = level.stars,
-                    starSizeSp = 24,
-                    filledColor = Color.White,
-                    emptyColor = Color.White.copy(alpha = 0.35f)
-                )
+                Spacer(modifier = Modifier.height(4.dp))
+                // Two ratings side by side: how fast the kid answered, and how many
+                // were right -- speed alone shouldn't hide that accuracy still matters.
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("⚡", fontSize = 12.sp)
+                    StarRatingRow(
+                        rating = level.stars,
+                        starSizeSp = 14,
+                        filledColor = Color.White,
+                        emptyColor = Color.White.copy(alpha = 0.35f)
+                    )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("🎯", fontSize = 12.sp)
+                    StarRatingRow(
+                        rating = accuracyStarsFor(level.bestCorrectCount, level.totalWords),
+                        starSizeSp = 14,
+                        filledColor = Color.White,
+                        emptyColor = Color.White.copy(alpha = 0.35f)
+                    )
+                }
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     LottieAnim(asset = "bee_mascot.json", modifier = Modifier.size(28.dp), loop = true)
@@ -124,5 +141,18 @@ private fun LevelTile(level: LevelEntity, onClick: () -> Unit) {
                 }
             }
         }
+    }
+}
+
+/** Accuracy rating (how many were answered right) -- separate from the speed-based [LevelEntity.stars]. */
+private fun accuracyStarsFor(correctCount: Int, total: Int): Int {
+    if (total <= 0) return 1
+    val ratio = correctCount.toFloat() / total.toFloat()
+    return when {
+        ratio >= 0.95f -> 5
+        ratio >= 0.8f -> 4
+        ratio >= 0.6f -> 3
+        ratio >= 0.4f -> 2
+        else -> 1
     }
 }
