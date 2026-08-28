@@ -23,8 +23,8 @@ class SpellRepository(
 
     fun observeGrades(): Flow<List<GradeEntity>> = db.gradeDao().observeAll()
 
-    /** Catalog levels for [gradeId] merged with [userId]'s progress -- the first level
-     * defaults to unlocked when the user has no progress row for it yet. */
+    /** Catalog levels for [gradeId] merged with [userId]'s progress -- all levels are
+     * unlocked and can be played in any order. */
     fun observeLevelsWithProgress(userId: String, gradeId: Int): Flow<List<LevelWithProgress>> =
         combine(
             db.levelDao().observeForGrade(gradeId),
@@ -39,7 +39,7 @@ class SpellRepository(
                     name = level.name,
                     orderIndex = level.orderIndex,
                     totalWords = level.totalWords,
-                    isUnlocked = p?.isUnlocked ?: (level.orderIndex == 0),
+                    isUnlocked = true,
                     stars = p?.stars ?: -1,
                     bestCorrectCount = p?.bestCorrectCount ?: 0
                 )
@@ -88,8 +88,8 @@ class SpellRepository(
         db.wordAttemptDao().countCorrectMain(userId, sessionId, levelId)
 
     /**
-     * Persists the star rating for the level (kept as best-ever score), unlocks the
-     * next level, and mirrors both changes to Firestore for cross-device sync.
+     * Persists the star rating for the level (kept as best-ever score) and mirrors the
+     * change to Firestore for cross-device sync.
      * [stars] is computed by the caller from per-question answer speed, not accuracy.
      */
     suspend fun finishLevel(userId: String, levelId: String, gradeId: Int, stars: Int, correctCount: Int): Int {
@@ -108,25 +108,6 @@ class SpellRepository(
         )
         db.levelProgressDao().upsert(updated)
         firestoreSync.pushProgress(userId, updated)
-
-        val levelsInGrade = db.levelDao().getForGradeOnce(gradeId)
-        val currentIndex = levelsInGrade.indexOfFirst { it.levelId == levelId }
-        val next = levelsInGrade.getOrNull(currentIndex + 1)
-        if (next != null) {
-            val nextProgress = db.levelProgressDao().getProgress(userId, next.levelId)
-            if (nextProgress == null || !nextProgress.isUnlocked) {
-                val unlockedNext = (nextProgress ?: LevelProgressEntity(
-                    userId = userId,
-                    levelId = next.levelId,
-                    gradeId = gradeId,
-                    isUnlocked = false,
-                    stars = -1,
-                    bestCorrectCount = 0
-                )).copy(isUnlocked = true, updatedAt = now)
-                db.levelProgressDao().upsert(unlockedNext)
-                firestoreSync.pushProgress(userId, unlockedNext)
-            }
-        }
         return bestStars
     }
 

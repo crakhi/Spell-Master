@@ -25,7 +25,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -42,7 +41,6 @@ import com.spell.master.ui.common.LottieAnim
 import com.spell.master.ui.common.StarRatingRow
 import com.spell.master.ui.theme.CreamBg
 import com.spell.master.ui.theme.InkBrown
-import com.spell.master.ui.theme.LockedGray
 import com.spell.master.ui.theme.TilePalette
 
 @Composable
@@ -85,7 +83,7 @@ fun LevelDashboardScreen(
                 .padding(top = 10.dp)
         ) {
             items(levels, key = { it.levelId }) { level ->
-                LevelTile(level = level, onClick = { if (level.isUnlocked) onLevelSelected(level.levelId) })
+                LevelTile(level = level, onClick = { onLevelSelected(level.levelId) })
             }
         }
     }
@@ -93,16 +91,15 @@ fun LevelDashboardScreen(
 
 @Composable
 private fun LevelTile(level: LevelWithProgress, onClick: () -> Unit) {
-    val color = if (level.isUnlocked) TilePalette[level.orderIndex % TilePalette.size] else LockedGray
-    val attempted = level.stars >= 0
+    val color = TilePalette[level.orderIndex % TilePalette.size]
+    val completed = level.stars >= 0
 
     Box(
         modifier = Modifier
             .aspectRatio(1.15f)
             .clip(RoundedCornerShape(20.dp))
             .background(color)
-            .clickable(enabled = level.isUnlocked, onClick = onClick)
-            .alpha(if (level.isUnlocked) 1f else 0.55f)
+            .clickable(onClick = onClick)
             .padding(10.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -114,9 +111,7 @@ private fun LevelTile(level: LevelWithProgress, onClick: () -> Unit) {
                 fontSize = 17.sp,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
-            if (!level.isUnlocked) {
-                Text("🔒 Locked", color = Color.White, fontSize = 13.sp)
-            } else if (attempted) {
+            if (completed) {
                 Spacer(modifier = Modifier.height(4.dp))
                 // Two ratings side by side: how fast the kid answered, and how many
                 // were right -- speed alone shouldn't hide that accuracy still matters.
@@ -143,6 +138,19 @@ private fun LevelTile(level: LevelWithProgress, onClick: () -> Unit) {
                     LottieAnim(asset = "bee_mascot.json", modifier = Modifier.size(28.dp), loop = true)
                     Text("New!", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                 }
+            }
+        }
+
+        if (completed) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .size(22.dp)
+                    .clip(CircleShape)
+                    .background(Color.White),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("✓", color = color, fontWeight = FontWeight.ExtraBold, fontSize = 14.sp)
             }
         }
     }

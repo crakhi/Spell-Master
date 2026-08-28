@@ -13,9 +13,6 @@ interface LevelDao {
     @Query("SELECT * FROM levels WHERE gradeId = :gradeId ORDER BY orderIndex ASC")
     fun observeForGrade(gradeId: Int): Flow<List<LevelEntity>>
 
-    @Query("SELECT * FROM levels WHERE gradeId = :gradeId ORDER BY orderIndex ASC")
-    suspend fun getForGradeOnce(gradeId: Int): List<LevelEntity>
-
     @Query("SELECT * FROM levels WHERE levelId = :levelId LIMIT 1")
     suspend fun getLevel(levelId: String): LevelEntity?
 
